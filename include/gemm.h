@@ -1,5 +1,21 @@
-// studentid: 2016123456
+// studentid: 2018011398
 #include "util.h"
+
+template<class T>
+__global__ void calcu(T *A, T *B, T *C, int m, int n, int k, T alpha, T beta) {
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    // printf("col %d row %d\n", col, row);
+    if( (col < n) && (row < m) )
+    {
+        T tmp = beta * C[row * n + col];
+        for(int i = 0; i < k; ++i)
+        {
+            tmp += alpha * A[row * k + i] * B[col + i * n];
+        }
+        C[row * n + col] = tmp;
+    }
+}
 
 template<class T>
 double myGEMM(T* A, T* B, T* C, T alpha, T beta)
@@ -19,15 +35,7 @@ double myGEMM(T* A, T* B, T* C, T alpha, T beta)
 	else
 	{
 		// your gemm
-		int col = blockIdx.x * blockDim.x + threadIdx.x;
-    	int row = blockIdx.y * blockDim.y + threadIdx.y;
-		if( (col < N) && (row < M) ) {
-        	T tmp = beta * C[row * N + col];
-        	for(int i = 0; i < K; ++i) {
-            	tmp += alpha * A[row * K + i] * B[col + i * N];
-        	}
-        	C[row * N + col] = tmp;
-    	}
+		calcu(A,B,C,M,N,K,alpha,beta);
 		checkCudaErrors(cudaDeviceSynchronize());
 		return 0.f;	
 	}
