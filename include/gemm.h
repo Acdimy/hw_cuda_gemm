@@ -19,7 +19,15 @@ double myGEMM(T* A, T* B, T* C, T alpha, T beta)
 	else
 	{
 		// your gemm
-
+		int col = blockIdx.x * blockDim.x + threadIdx.x;
+    	int row = blockIdx.y * blockDim.y + threadIdx.y;
+		if( (col < N) && (row < M) ) {
+        	T tmp = beta * C[row * N + col];
+        	for(int i = 0; i < K; ++i) {
+            	tmp += alpha * A[row * K + i] * B[col + i * N];
+        	}
+        	C[row * N + col] = tmp;
+    	}
 		checkCudaErrors(cudaDeviceSynchronize());
 		return 0.f;	
 	}
